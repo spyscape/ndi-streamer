@@ -25,19 +25,10 @@ std::map<int, NDIlib_video_frame_v2_t> frames;
 std::map<int, NDIlib_send_instance_t> senders;
 
 void ExtractAndConvertToRGBA(const SL::Screen_Capture::Image &img, unsigned char *dst, size_t dst_size) {
-    assert(dst_size >= static_cast<size_t>(SL::Screen_Capture::Width(img) * SL::Screen_Capture::Height(img) * sizeof(SL::Screen_Capture::ImageBGRA)));
-    auto imgsrc = StartSrc(img);
-    auto imgdist = dst;
-    for (auto h = 0; h < Height(img); h++) {
-        auto startimgsrc = imgsrc;
-        for (auto w = 0; w < Width(img); w++, imgsrc++) {
-            *imgdist++ = imgsrc->B;
-            *imgdist++ = imgsrc->G;
-            *imgdist++ = imgsrc->R;
-            *imgdist++ = 0;
-        }
-        imgsrc = SL::Screen_Capture::GotoNextRow(img, startimgsrc);
-    }
+    size_t frame_size = static_cast<size_t>(SL::Screen_Capture::Width(img) * SL::Screen_Capture::Height(img) * sizeof(SL::Screen_Capture::ImageBGRA));
+    assert(dst_size >= frame_size);
+    memcpy(dst, SL::Screen_Capture::StartSrc(img), frame_size);
+    return;
 }
 
 using namespace std::chrono_literals;
