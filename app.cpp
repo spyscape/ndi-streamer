@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <deque>
 #include <iostream>
 #include <map>
 
@@ -23,12 +24,19 @@
 std::map<int, void *> frame_buffers;
 std::map<int, NDIlib_video_frame_v2_t> frames;
 std::map<int, NDIlib_send_instance_t> senders;
+std::map<int, std::thread> threads;
 
 void ExtractAndConvertToRGBA(const SL::Screen_Capture::Image &img, unsigned char *dst, size_t dst_size) {
     size_t frame_size = static_cast<size_t>(SL::Screen_Capture::Width(img) * SL::Screen_Capture::Height(img) * sizeof(SL::Screen_Capture::ImageBGRA));
     assert(dst_size >= frame_size);
     memcpy(dst, SL::Screen_Capture::StartSrc(img), frame_size);
     return;
+}
+
+void ndi_sender(int monitor_id) {
+    while (true) {
+        NDIlib_send_send_video_v2(senders[monitor_id], &frames[monitor_id]);
+    }
 }
 
 using namespace std::chrono_literals;
@@ -80,6 +88,9 @@ int main(int argc, char *argv[]) {
 
                 std::cout << m.Name << std::endl;
 
+                threads[m.Id] = std::thread(ndi_sender, m.Id);
+                threads[m.Id].detach();
+
                 // free(p_frame_buffers[]);
 
                 // NDIlib_send_destroy(pNDI_send);
@@ -96,7 +107,7 @@ int main(int argc, char *argv[]) {
 
                 ExtractAndConvertToRGBA(img, (unsigned char *)frame_buffers[monitor.Id], monitor.Width * monitor.Height * 4);
                 frames[monitor.Id].p_data = (uint8_t *)frame_buffers[monitor.Id];
-                NDIlib_send_send_video_v2(senders[monitor.Id], &frames[monitor.Id]);
+                // NDIlib_send_send_video_v2(senders[monitor.Id], &frames[monitor.Id]);
                 // NDIlib_send_send_video_async_v2(senders[monitor.Id], &frames[monitor.Id]);
             })
             ->start_capturing();
