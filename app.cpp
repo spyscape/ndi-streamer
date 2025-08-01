@@ -71,8 +71,8 @@ int main(int argc, char *argv[]) {
                 NDI_video_frame.yres = m.Height;
                 NDI_video_frame.FourCC = NDIlib_FourCC_type_BGRX;
                 NDI_video_frame.line_stride_in_bytes = m.Width * 4;
-                // NDI_video_frame.frame_rate_N = 60000;
-                // NDI_video_frame.frame_rate_D = 1200;
+                NDI_video_frame.frame_rate_N = 60000;
+                NDI_video_frame.frame_rate_D = 1000;
 
                 senders[m.Id] = pNDI_send;
                 frames[m.Id] = NDI_video_frame;
