@@ -65,7 +65,9 @@ int main(int argc, char *argv[]) {
             std::cout << "Library is requesting the list of monitors to capture!" << std::endl;
             for (auto &m : mons) {
                 NDIlib_send_create_t NDI_send_create_desc;
-                NDI_send_create_desc.p_ndi_name = m.Name;
+
+                const char* name = std::getenv("NDI_SOURCE_NAME");
+                NDI_send_create_desc.p_ndi_name = name ? name : m.Name;
 
                 NDIlib_send_instance_t pNDI_send = NDIlib_send_create(&NDI_send_create_desc);
                 if (!pNDI_send) {
